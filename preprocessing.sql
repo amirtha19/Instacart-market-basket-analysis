@@ -26,8 +26,8 @@ WHERE PATINDEX('%[a-zA-Z]%', department_id) > 0 or PATINDEX('%[a-zA-Z]%', aisle_
 Alter table products
 Alter column department_id int;
 
-create VIEW curr_orders AS 
-(select orders.order_id,user_id,products.product_id,order_number,order_dow,order_hour_of_day,days_since_prior_order,add_to_cart_order,product_name,aisle,department,reordered
+CREATE VIEW curr_orders AS 
+(select orders.order_id,user_id,eval_set,order_number,order_dow,order_hour_of_day,days_since_prior_order,products.product_id,add_to_cart_order,reordered,product_name,aisle,department
 from orders
 left join order_products__train
 on orders.order_id = order_products__train.order_id
@@ -38,7 +38,8 @@ on departments.department_id = products.department_id
 left join aisles
 on aisles.aisle_id = products.aisle_id);
 
-(select orders.order_id,user_id,products.product_id,order_number,order_dow,order_hour_of_day,days_since_prior_order,add_to_cart_order,product_name,aisle,department,reordered
+CREATE VIEW prior_orders AS 
+(select orders.order_id,user_id,eval_set,order_number,order_dow,order_hour_of_day,days_since_prior_order,products.product_id,add_to_cart_order,reordered,product_name,aisle,department
 from orders
 left join order_products__prior
 on orders.order_id = order_products__prior.order_id
