@@ -1,0 +1,51 @@
+--- Asiles
+
+select count(*) as aisle_count from aisles;
+
+--- Department
+
+select count(*) as department_count from departments
+
+---- Products
+
+select count(*) as product_count from products
+
+--- Orders
+
+select count(*) as orders_count from orders;
+
+--- JOIN PRODUCTS AND ORDERS
+SELECT *
+FROM aisles
+WHERE PATINDEX('%[a-zA-Z]%', aisle_id) > 0;
+
+-- Delete the rows where keys are mixed with strings
+DELETE FROM products
+WHERE PATINDEX('%[a-zA-Z]%', department_id) > 0 or PATINDEX('%[a-zA-Z]%', aisle_id) > 0;
+
+Alter table products
+Alter column department_id int;
+
+CREATE VIEW curr_orders AS 
+(select orders.order_id,user_id,eval_set,order_number,order_dow,order_hour_of_day,days_since_prior_order,products.product_id,add_to_cart_order,reordered,product_name,aisle,department
+from orders
+left join order_products__train
+on orders.order_id = order_products__train.order_id
+left join products
+on products.product_id=order_products__train.product_id
+left join departments
+on departments.department_id = products.department_id
+left join aisles
+on aisles.aisle_id = products.aisle_id);
+
+CREATE VIEW prior_orders AS 
+(select orders.order_id,user_id,eval_set,order_number,order_dow,order_hour_of_day,days_since_prior_order,products.product_id,add_to_cart_order,reordered,product_name,aisle,department
+from orders
+left join order_products__prior
+on orders.order_id = order_products__prior.order_id
+left join products
+on products.product_id=order_products__prior.product_id
+left join departments
+on departments.department_id = products.department_id
+left join aisles
+on aisles.aisle_id = products.aisle_id);
