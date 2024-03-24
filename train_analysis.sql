@@ -105,6 +105,84 @@ select count(distinct user_id) as cnt_users
 from prior_orders
 
 ---Products most sold at the day and night
+WITH order_hour_category AS (
+    SELECT
+        *,
+        CASE
+            WHEN order_hour_of_day >= 6 AND order_hour_of_day < 12 THEN 'morning'
+			when order_hour_of_day >=12 and order_hour_of_day <=18 then 'midday'
+            ELSE 'night'
+        END AS hour_category
+    FROM
+        prior_orders
+),
+cte AS (
+    SELECT
+        department,
+        hour_category,
+        COUNT(product_id) AS cnt,
+        RANK() OVER (PARTITION BY department, hour_category ORDER BY COUNT(product_id) DESC) AS rnk
+    FROM
+        order_hour_category
+    GROUP BY
+        department, hour_category
+)
+SELECT
+    *
+FROM
+    cte
+WHERE
+    rnk < 5;
 
-select *,case when order_hour_of the day is between 6 and 12
 
+
+-- highest reorder_ratio department
+
+SELECT
+    department,
+    AVG(reordered) AS mean_reordered
+FROM
+    prior_orders
+GROUP BY
+    department;
+
+-- What product is ordered first ?
+
+WITH tmp AS (
+    SELECT
+        product_id,
+        add_to_cart_order,
+        COUNT(*) AS count
+    FROM
+        prior_orders
+    GROUP BY
+        product_id,
+        add_to_cart_order
+),
+tmp_pct AS (
+    SELECT
+        product_id,
+        count,
+        CAST(count AS FLOAT) / SUM(count) OVER (PARTITION BY add_to_cart_order) AS pct
+    FROM
+        tmp
+    WHERE
+        add_to_cart_order = 1 AND count > 10
+),
+tmp_top AS (
+    SELECT
+        *,
+        RANK() OVER (ORDER BY pct DESC) AS rnk
+    FROM
+        tmp_pct
+)
+SELECT
+    p.product_name,
+    t.pct,
+    t.count
+FROM
+    tmp_top t
+JOIN
+    products p ON t.product_id = p.product_id
+WHERE
+    t.rnk <= 10;
