@@ -186,3 +186,4 @@ JOIN
     products p ON t.product_id = p.product_id
 WHERE
     t.rnk <= 10;
+
